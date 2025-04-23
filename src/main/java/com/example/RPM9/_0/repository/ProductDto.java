@@ -1,32 +1,19 @@
 package com.example.RPM9._0.repository;
 
-import jakarta.persistence.*;
+public class ProductDto {
 
-@Entity
-@Table(name = "products")
-public class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     private String name;
     private Double price;
     private String description;
 
-    public Product(String name, Double price, String description) {
+    public ProductDto(String name, Double price, String description) {
         this.name = name;
         this.price = price;
         this.description = description;
     }
 
-    public Product() {
-    }
+    public ProductDto() {
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -52,5 +39,6 @@ public class Product {
     public void setDescription(String description) {
         this.description = description;
     }
+
 
 }

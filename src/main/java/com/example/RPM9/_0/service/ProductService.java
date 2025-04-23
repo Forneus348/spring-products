@@ -1,10 +1,13 @@
 package com.example.RPM9._0.service;
 
-import com.example.RPM9._0.repository.Product;
-import com.example.RPM9._0.repository.ProductRepository;
+import com.example.RPM9._0.repository.*;
 import jakarta.transaction.Transactional;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -17,22 +20,30 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public Product findById(Long id) {
+    public ResponseServer findById(Long id) {
         Optional<Product> optionalProduct = productRepository.findById(id);
-        Product product = optionalProduct.orElseThrow(() ->  new IllegalStateException("продукт с таким id:  " + id + " не найден"));
-        return product;
+        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException(HttpStatus.NOT_FOUND, "продукт с таким id: " + id + " не найден"));
+        return new ResponseServer(true, HttpStatus.OK, List.of("нет ошибок"), product);
     }
 
     public List<Product> findAll() {
         return productRepository.findAll();
     }
 
-    public Product create(Product product) {
-        Optional<Product> optionalProduct = productRepository.findByName(product.getName());
-        if (optionalProduct.isPresent()) {
-            throw new IllegalStateException("продукт с таким name существует");
-        }
-        return productRepository.save(product);
+    public ResponseServer create(ProductDto productDto) {
+        Optional<Product> optionalProduct = productRepository.findByName(productDto.getName());
+//        if (optionalProduct.isPresent()) {
+//            throw new IllegalStateException("продукт с таким name существует");
+        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException(HttpStatus.CONFLICT, "продукт с таким name " + productDto.getName() + " существует"));
+//        }
+
+
+        Long maxId = productRepository.findAll().stream()
+                .map(Product::getId)
+                .max(Long::compareTo).orElse(0L) + 1;
+
+        Product newProduct = new Product(productDto.getName(), productDto.getPrice(), productDto.getDescription());
+        return new ResponseServer(true, HttpStatus.CREATED, List.of("нет ошибок"), productRepository.save(newProduct));
     }
 
     @Transactional
