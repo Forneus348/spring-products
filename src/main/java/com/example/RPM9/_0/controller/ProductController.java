@@ -2,7 +2,6 @@ package com.example.RPM9._0.controller;
 
 import com.example.RPM9._0.repository.Product;
 import com.example.RPM9._0.repository.ProductDto;
-import com.example.RPM9._0.repository.ProductNotFoundException;
 import com.example.RPM9._0.repository.ResponseServer;
 import com.example.RPM9._0.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController // говорит что в этом классе есть эндпоинты
+@RestController
 @RequestMapping(path = "api/products")
 public class ProductController {
     @Autowired
