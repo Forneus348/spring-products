@@ -5,6 +5,7 @@ import com.example.RPM9._0.repository.ProductDto;
 import com.example.RPM9._0.repository.ProductNotFoundException;
 import com.example.RPM9._0.repository.ResponseServer;
 import com.example.RPM9._0.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +15,7 @@ import java.util.List;
 @RestController // говорит что в этом классе есть эндпоинты
 @RequestMapping(path = "api/products")
 public class ProductController {
-
+    @Autowired
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -39,29 +40,22 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<ResponseServer> create(@RequestBody ProductDto productDto) {
         ResponseServer response = productService.create(productDto);
-
-        if (response.isSuccess){
-            return ResponseEntity.ok(response);
-//        return productService.create(productDto);
-        }
-        else{
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ResponseServer(false, HttpStatus.CONFLICT, List.of("продукт с таким name " + productDto.getName() + " существует"), new Product()));
-
-        }
+        return ResponseEntity.status(response.statusCode).body(response);
     }
 
     @DeleteMapping(path = "{id}")
-    public void delete(@PathVariable(name = "id") Long id) {
-        productService.delete(id);
+    public ResponseEntity<ResponseServer> delete(@PathVariable(name = "id") Long id) {
+        /*productService.delete(id);
+        return ResponseEntity.status(response.statusCode).body(response);*/
+        ResponseServer response = productService.delete(id);
+        return ResponseEntity.status(response.statusCode).body(response);
     }
 
     @PutMapping(path = "{id}")
-    public void update(
-            @PathVariable Long id,
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) Double price,
-            @RequestParam(required = false) String description
+    public ResponseEntity<ResponseServer> update(
+            @PathVariable Long id, ProductDto productDto
     ) {
-        productService.update(id, name, price, description);
+        ResponseServer response = productService.update(id, productDto);
+        return ResponseEntity.status(response.statusCode).body(response);
     }
 }

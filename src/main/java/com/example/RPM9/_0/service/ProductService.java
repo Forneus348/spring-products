@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,51 +32,47 @@ public class ProductService {
     }
 
     public ResponseServer create(ProductDto productDto) {
-        Optional<Product> optionalProduct = productRepository.findByName(productDto.getName());
-//        if (optionalProduct.isPresent()) {
-//            throw new IllegalStateException("продукт с таким name существует");
-        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException(HttpStatus.CONFLICT, "продукт с таким name " + productDto.getName() + " существует"));
-//        }
+        Product product = new Product();
+        product.setName(productDto.getName());
+        product.setPrice(productDto.getPrice());
+        product.setDescription(productDto.getDescription());
 
-
-        Long maxId = productRepository.findAll().stream()
-                .map(Product::getId)
-                .max(Long::compareTo).orElse(0L) + 1;
-
-        Product newProduct = new Product(productDto.getName(), productDto.getPrice(), productDto.getDescription());
-        return new ResponseServer(true, HttpStatus.CREATED, List.of("нет ошибок"), productRepository.save(newProduct));
+        Product savedProduct = productRepository.save(product);
+        return new ResponseServer(true, HttpStatus.OK, List.of("Продукт успешно создан"), savedProduct);
     }
 
     @Transactional
-    public void update(Long id, String name, Double price, String description) {
+    public ResponseServer update(Long id, ProductDto productDto) {
         Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isEmpty()) {
-            throw new IllegalStateException("продукта с id: " + id + " не существует");
-        }
-        Product product = optionalProduct.get();
+        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException(HttpStatus.NOT_FOUND, "продукт с таким id: " + id + " не найден"));
 
-        if (name != null && !name.equals(product.getName())) {
-            Optional<Product> foundByEmail = productRepository.findByName(name);
-            if (foundByEmail.isPresent()) {
-                throw new IllegalStateException("продукт с таким названием существует");
-            }
-            product.setName(name);
+        if (productDto.getName() != null) {
+            product.setName(productDto.getName() );
         }
 
-        if (price != null && !price.equals(product.getPrice())) {
-            product.setPrice(price);
+        if (productDto.getPrice()  != null) {
+            product.setPrice(productDto.getPrice());
         }
 
-        if (description != null && !description.equals(product.getDescription())) {
-            product.setDescription(description);
+        if (productDto.getDescription() != null) {
+            product.setDescription(productDto.getDescription());
         }
+
+        return new ResponseServer(true, HttpStatus.OK, List.of("Продукт успешно обновлён"), product);
     }
 
-    public void delete(Long id) {
+    public ResponseServer delete(Long id) {
         Optional<Product> optionalProduct = productRepository.findById(id);
+        Product product = optionalProduct.orElseThrow(() -> new ProductNotFoundException(HttpStatus.NOT_FOUND, "продукт с таким id: " + id + " не найден"));
+
+       /* Optional<Product> optionalProduct = productRepository.findById(id);
         if (optionalProduct.isEmpty()) {
             throw new IllegalStateException("продукта с id: " + id + " не существует");
         }
+        productRepository.deleteById(id);*/
+
         productRepository.deleteById(id);
+        return new ResponseServer(true, HttpStatus.OK, List.of("Продукт успешно удалён"), new Product());
+
     }
 }
